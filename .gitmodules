@@ -10,3 +10,21 @@
 [submodule "chef/cookbooks/laggyluke"]
 	path = chef/cookbooks/laggyluke
 	url = https://github.com/laggyluke/laggyluke-cookbooks.git
+[submodule "components/muchmala-app"]
+	path = components/muchmala-app
+	url = https://github.com/muchmala/muchmala-app.git
+[submodule "components/muchmala-common"]
+	path = components/muchmala-common
+	url = https://github.com/muchmala/muchmala-common.git
+[submodule "components/muchmala-frontend"]
+	path = components/muchmala-frontend
+	url = https://github.com/muchmala/muchmala-frontend.git
+[submodule "components/muchmala-generator"]
+	path = components/muchmala-generator
+	url = https://github.com/muchmala/muchmala-generator.git
+[submodule "components/muchmala-io"]
+	path = components/muchmala-io
+	url = https://github.com/muchmala/muchmala-io.git
+[submodule "components/muchmala-scripts"]
+	path = components/muchmala-scripts
+	url = https://github.com/muchmala/muchmala-scripts.git
