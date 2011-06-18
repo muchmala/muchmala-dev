@@ -4,17 +4,17 @@
     "hostnameOnly": true,
     "router": {
 <%
-for (i = config.FRONTEND_SERVERS.length; i--; ) {
+for (i = config.serversCount.frontend; i--; ) {
 %>
-        "<%=config.FRONTEND_SERVERS[i].externalHost%>" : "127.0.0.1:<%=config.FRONTEND_SERVERS[i].internalPort%>",
+        "<%=config.http.hostName%>" : "127.0.0.1:807<%=i%>",
 <%
 }
-for (i = config.IO_SERVERS.length; --i; ) {
+for (i = config.serversCount.io; i--; ) {
 %>
-        "<%=config.IO_SERVERS[i].externalHost%>" : "127.0.0.1:<%=config.IO_SERVERS[i].internalPort%>",
+        "io<%=i%>.<%=config.http.hostName%>" : "127.0.0.1:809<%=i%>",
 <%
 }
 %>
-        "<%=config.IO_SERVERS[0].externalHost%>" : "127.0.0.1:<%=config.IO_SERVERS[0].internalPort%>"
+        "static.<%=config.http.hostName%>" : "127.0.0.1:8080"
     }
 }

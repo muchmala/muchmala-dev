@@ -1,82 +1,47 @@
-<%
-var programs = '', i;
-for (i = config.IO_SERVERS.length; i--; ) {
-    programs += 'muchmala-io' + config.IO_SERVERS[i].internalPort + ',';
-}
-
-for (i = config.FRONTEND_SERVERS.length; i--; ) {
-    programs += 'muchmala-frontend' + config.FRONTEND_SERVERS[i].internalPort + ',';
-}
-
-for (i = config.APP_SERVERS_COUNT; i--; ) {
-    programs += 'muchmala-app' + i + ',';
-}
-
-%>
-
 [group:muchmala]
-programs=<%=programs%>proxy<% if (config.DEV) { %>,stylus<% } %>
+programs=frontend, io, app, proxy, stylus
 
-<%
-for (i = config.IO_SERVERS.length; i--; ) {
-%>
-[program:muchmala-io<%=config.IO_SERVERS[i].internalPort%>]
-command=<%= root %>/bin/muchmala-io -p <%=config.IO_SERVERS[i].internalPort%>
-directory=<%= root %>
-<% if (config.DEV) { %>
-autostart=false
-autorestart=false
-<% } else { %>
-autostart=true
-autorestart=true
-<% } %>
-<% } %>
 
-<%
-for (i = config.FRONTEND_SERVERS.length; i--; ) {
-%>
-[program:muchmala-frontend<%=config.FRONTEND_SERVERS[i].internalPort%>]
-command=<%= root %>/bin/muchmala-frontend -p <%=config.FRONTEND_SERVERS[i].internalPort%>
-directory=<%= root %>
-<% if (config.DEV) { %>
-autostart=false
-autorestart=false
-<% } else { %>
-autostart=true
-autorestart=true
-<% } %>
-<% } %>
+[program:frontend]
+process_name=%(program_name)s_807%(process_num)s
+numprocs=<%= config.serversCount.frontend %>
+command=node index.js --port 807%(process_num)s
+directory=<%= root %>/components/muchmala-frontend
 
-<%
-for (i = config.APP_SERVERS_COUNT; i--; ) {
-%>
-[program:muchmala-app<%=i%>]
-command=<%= root %>/bin/muchmala-app
-directory=<%= root %>
-<% if (config.DEV) { %>
-autostart=false
-autorestart=false
-<% } else { %>
-autostart=true
-autorestart=true
-<% } %>
-<% } %>
+autostart=<%= config.autoRestart %>
+autorestart=<%= config.autoRestart %>
+
+
+[program:io]
+process_name=%(program_name)s_809%(process_num)1d
+numprocs=<%= config.serversCount.io %>
+command=node index.js --externalHost io%(process_num)s.<%= config.http.hostName %> --internalPort 809%(process_num)s
+directory=<%= root %>/components/muchmala-io
+
+autostart=<%= config.autoRestart %>
+autorestart=<%= config.autoRestart %>
+
+
+[program:app]
+process_name=%(program_name)s_%(process_num)02d
+numprocs=<%= config.serversCount.app %>
+command=node index.js
+directory=<%= root %>/components/muchmala-app
+
+autostart=<%= config.autoRestart %>
+autorestart=<%= config.autoRestart %>
+
 
 [program:proxy]
-command=<%= root %>/bin/muchmala-proxy --config proxy.json
-directory=<%= root %>
-<% if (config.DEV) { %>
-autostart=false
-autorestart=false
-<% } else { %>
-autostart=true
-autorestart=true
-<% } %>
+command=<%= root %>/bin/proxy -c <%= root %>/proxy.json
 
-<% if (config.DEV) { %>
+autostart=true
+autorestart=unexpected
+
+
 [program:stylus]
 command=jake stylus-watch
-directory=<%= root %>
-autostart=false
-autorestart=false
-<% } %>
+directory=<%= root %>/components/muchmala-frontend
+
+autostart=true
+autorestart=unexpected
