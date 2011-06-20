@@ -44,7 +44,6 @@ task('stop', function() {
 desc('Restart muchmala');
 task('restart', ['stop'], function() {
     jake.Task.start.invoke();
-    jake.Task.start.execute();
 }, true);
 
 
@@ -52,7 +51,7 @@ task('restart', ['stop'], function() {
 desc('Install all muchmala stuff');
 task('install', ['install-components'], function() {
     console.log('Muchmala is installed and ready to use.');
-}, true);
+});
 
 
 var installComponentsSubtasks = [];
