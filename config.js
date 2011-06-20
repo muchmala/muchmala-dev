@@ -10,7 +10,7 @@ config.http.url = 'http://' + config.http.hostName;
 config.static = {
     host: "static.muchmala.dev",
     port: 8080,
-    version: 2,
+    version: 1,
     minified: false
 };
 config.static.url = "http://" + config.static.host,
