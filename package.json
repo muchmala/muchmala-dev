@@ -1,0 +1,21 @@
+{ "name" : "muchmala-dev"
+, "version" : "0.0.1"
+, "description" : "Development package for muchmala"
+, "contributors" :
+ [ "Serge Borbit <serge.borbit@gmail.com>"
+ , "Taras Kunch <taras.kunch@gmail.com>"
+ , "George Miroshnykov <george.miroshnykov@gmail.com>"
+ ]
+, "repositories":
+ { "type" : "git"
+ , "url" : "https://github.com/muchmala/muchmala-dev.git"
+ }
+, "dependencies" :
+ { "ejs" : "~0"
+ , "http-proxy" : "~0"
+}
+, "engines" :
+ { "node" : "~0.4"
+ , "npm" : "~1"
+ }
+}
