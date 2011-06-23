@@ -1,12 +1,14 @@
 var fs = require('fs'),
     path = require('path'),
-    exec = require('child_process').exec,
+    spawn = require('child_process').spawn,
     ejs = require('ejs'),
+    _ = require('underscore'),
 
     config = require('./config.js');
 
 var componentsBaseDir = './components';
 var components = fs.readdirSync(componentsBaseDir);
+components = _.without(components, 'muchmala-common');
 
 var configFiles = ['Jakefile.js', 'config.js'];
 if (path.existsSync('config.local.js')) {
@@ -15,7 +17,7 @@ if (path.existsSync('config.local.js')) {
 
 desc('Start muchmala');
 task('start', ['install'], function() {
-    exec('supervisorctl start muchmala:', function(err) {
+    passthru('supervisorctl', ['start', 'muchmala:'], function(err) {
         if (err) {
             return fail(err, 2);
         }
@@ -29,7 +31,7 @@ task('start', ['install'], function() {
 
 desc('Stop muchmala');
 task('stop', function() {
-    exec('supervisorctl stop muchmala:', function(err) {
+    passthru('supervisorctl', ['stop', 'muchmala:'], function(err) {
         if (err) {
             return fail(err, 3);
         }
@@ -53,6 +55,17 @@ task('install', ['install-components'], function() {
     console.log('Muchmala is installed and ready to use.');
 });
 
+desc('Link common module');
+task('link-common', function() {
+    console.log('Linking muchmala-common into global space');
+    passthru('npm', ['link'], {cwd: componentsBaseDir + '/muchmala-common'}, function(err) {
+        if (err) {
+            fail(err, 2);
+        } else {
+            complete();
+        }
+    });
+}, true);
 
 var installComponentsSubtasks = [];
 
@@ -66,17 +79,25 @@ components.forEach(function(component) {
         hasConfigFile = path.existsSync(cwd + '/config.js'),
         hasJakeFile = path.existsSync(jakeFile);
 
-    var componentDependencies = [nodeModules];
+    var componentDependencies = ['link-common', nodeModules];
 
     desc('Install dependencies for module ' + component);
     file(nodeModules, function() {
-        console.log('Installing dependencies for module ' + component + '...');
-        exec('sudo -u ' + process.env.SUDO_USER + ' npm install', {cwd: cwd}, function(err) {
+        console.log('Linking muchmala-common from global space into ' + component + ' space');
+        unsudo(['npm', 'link', 'muchmala-common'], {cwd: cwd}, function(err) {
             if (err) {
                 fail(err, 2);
-            } else {
-                complete();
+                return;
             }
+
+            console.log('Installing dependencies for module ' + component + '...');
+            unsudo(['npm', 'install'], {cwd: cwd}, function(err) {
+                if (err) {
+                    fail(err, 2);
+                    return;
+                }
+                complete();
+            });
         });
     }, true);
 
@@ -97,7 +118,7 @@ components.forEach(function(component) {
         if (hasJakeFile) {
             console.log('Running jake install for ' + component + '...');
 
-            exec('jake install', {cwd: cwd}, function(err, stdout) {
+            passthru('jake', ['install'], {cwd: cwd}, function(err, stdout) {
                 if (err) {
                     fail(err, 3);
                 } else {
@@ -112,8 +133,11 @@ components.forEach(function(component) {
     }, true);
     installComponentsSubtasks.push('install-' + component);
 });
+
+
+var deps = installComponentsSubtasks.concat(['/etc/supervisor/conf.d/muchmala.conf', 'proxy.json']);
 desc('Install all dependencies in submodules');
-task('install-components', installComponentsSubtasks.concat(['/etc/supervisor/conf.d/muchmala.conf', 'proxy.json']), function() {});
+task('install-components', deps, function() {});
 
 
 desc('Generate supervisor config');
@@ -137,8 +161,8 @@ file('proxy.json', ['config/proxy.json.in'].concat(configFiles), function() {
 
 function restartSupervisor(callback) {
     console.log('Restarting supervisor...');
-    exec('/etc/init.d/supervisor stop', function() {
-        exec('/etc/init.d/supervisor start', callback);
+    passthru('/etc/init.d/supervisor', ['stop'], function() {
+        passthru('/etc/init.d/supervisor', ['start'], callback);
     });
 }
 
@@ -155,4 +179,32 @@ function render(src, dst, options) {
     var template = fs.readFileSync(src).toString();
     var result = ejs.render(template, {locals: options});
     fs.writeFileSync(dst, result);
+}
+
+function unsudo(args, options, callback) {
+    if (process.env.SUDO_USER) {
+        args = ['sudo', '-u', process.env.SUDO_USER].concat(args);
+    }
+    var command = args.shift();
+    passthru(command, args, options, callback);
+}
+
+function passthru(command, args, options, callback) {
+    if (_.isFunction(options)) {
+        callback = options;
+        options = {};
+    }
+
+    if (!_.isFunction(callback)) {
+        callback = null;
+    }
+
+    if (_.isEmpty(options.customFds)) {
+        options.customFds = [process.stdin, process.stdout, process.stderr];
+    }
+
+    var subprocess = spawn(command, args, options);
+    if (callback) {
+        subprocess.on('exit', callback);
+    };
 }

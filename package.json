@@ -13,6 +13,7 @@
 , "dependencies" :
  { "ejs" : "~0"
  , "http-proxy" : "~0"
+ , "underscore" : "~1"
 }
 , "engines" :
  { "node" : "~0.4"
