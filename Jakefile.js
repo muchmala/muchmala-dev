@@ -55,15 +55,16 @@ task('install', ['install-components'], function() {
     console.log('Muchmala is installed and ready to use.');
 });
 
-desc('Link common module');
-task('link-common', function() {
+var linkedMuchmalaCommon = '/usr/lib/node_modules/muchmala-common';
+file(linkedMuchmalaCommon, function() {
     console.log('Linking muchmala-common into global space');
     passthru('npm', ['link'], {cwd: componentsBaseDir + '/muchmala-common'}, function(err) {
         if (err) {
             fail(err, 2);
-        } else {
-            complete();
+            return;
         }
+
+        complete();
     });
 }, true);
 
@@ -79,7 +80,7 @@ components.forEach(function(component) {
         hasConfigFile = path.existsSync(cwd + '/config.js'),
         hasJakeFile = path.existsSync(jakeFile);
 
-    var componentDependencies = ['link-common', nodeModules];
+    var componentDependencies = [linkedMuchmalaCommon, nodeModules];
 
     desc('Install dependencies for module ' + component);
     file(nodeModules, function() {
@@ -118,18 +119,18 @@ components.forEach(function(component) {
         if (hasJakeFile) {
             console.log('Running jake install for ' + component + '...');
 
-            passthru('jake', ['install'], {cwd: cwd}, function(err, stdout) {
+            passthru('jake', ['install'], {cwd: cwd}, function(err) {
                 if (err) {
                     fail(err, 3);
-                } else {
-                    console.log('<<< ' + stdout + ' >>>');
-                    complete();
+                    return;
                 }
-            });
 
-        } else {
-            complete();
+                complete();
+            });
+            return;
         }
+
+        complete();
     }, true);
     installComponentsSubtasks.push('install-' + component);
 });
