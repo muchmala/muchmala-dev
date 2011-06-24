@@ -19,3 +19,16 @@
 #
 
 include_recipe "nginx"
+
+template "/etc/nginx/sites-enabled/static.muchmala.dev" do
+    source "static.muchmala.dev.conf"
+    mode 0644
+end
+
+file "/etc/nginx/sites-enabled/default" do
+    action :delete
+end
+
+service "nginx" do
+    action :restart
+end

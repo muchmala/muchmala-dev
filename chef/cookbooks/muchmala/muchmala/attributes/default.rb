@@ -22,3 +22,7 @@ default.nodejs[:version] = "0.4.8"
 default.nodejs[:npm] = "1.0.8"
 
 default['java']['install_flavor'] = "sun"
+
+default[:muchmala][:user] 	= ENV['SUDO_USER']
+default[:muchmala][:group]	= ENV['SUDO_USER']
+default[:muchmala][:root]	  = "/opt/muchmala"

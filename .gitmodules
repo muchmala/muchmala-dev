@@ -28,3 +28,6 @@
 [submodule "components/muchmala-scripts"]
 	path = components/muchmala-scripts
 	url = https://github.com/muchmala/muchmala-scripts.git
+[submodule "components/muchmala-lb"]
+	path = components/muchmala-lb
+	url = https://github.com/muchmala/muchmala-lb.git

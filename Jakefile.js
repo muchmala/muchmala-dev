@@ -136,51 +136,9 @@ components.forEach(function(component) {
 });
 
 
-var deps = installComponentsSubtasks.concat(['/etc/supervisor/conf.d/muchmala.conf', 'proxy.json']);
 desc('Install all dependencies in submodules');
-task('install-components', deps, function() {});
+task('install-components', installComponentsSubtasks, function() {});
 
-
-desc('Generate supervisor config');
-file('/etc/supervisor/conf.d/muchmala.conf', ['config/supervisor.conf.in'].concat(configFiles), function() {
-    console.log('Generating supervisor config...');
-    render('config/supervisor.conf.in', '/etc/supervisor/conf.d/muchmala.conf', {config: config});
-    restartSupervisor(function(err) {
-        if (err) {
-            return fail(err, 1);
-        }
-
-        complete();
-    })
-}, true);
-
-desc('Generate proxy config');
-file('proxy.json', ['config/proxy.json.in'].concat(configFiles), function() {
-    console.log('Generating proxy config...');
-    render('config/proxy.json.in', 'proxy.json', {config: config});
-});
-
-function restartSupervisor(callback) {
-    console.log('Restarting supervisor...');
-    passthru('/etc/init.d/supervisor', ['stop'], function() {
-        passthru('/etc/init.d/supervisor', ['start'], callback);
-    });
-}
-
-function render(src, dst, options) {
-    if (typeof(options) == 'function') {
-        callback = options;
-        options = {};
-    }
-
-    if (!options.root) {
-        options.root = __dirname;
-    }
-
-    var template = fs.readFileSync(src).toString();
-    var result = ejs.render(template, {locals: options});
-    fs.writeFileSync(dst, result);
-}
 
 function unsudo(args, options, callback) {
     if (process.env.SUDO_USER) {
