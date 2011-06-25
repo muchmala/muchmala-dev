@@ -55,6 +55,16 @@ task('install', ['install-components'], function() {
     console.log('Muchmala is installed and ready to use.');
 });
 
+
+
+desc('Remove all installed files');
+task('clean', ['clean-components'], function() {
+    console.log('All installed files were removed.')
+    console.log('You can run `[sudo] jake install` to install them again.')
+});
+
+
+
 var linkedMuchmalaCommon = '/usr/lib/node_modules/muchmala-common';
 file(linkedMuchmalaCommon, function() {
     console.log('Linking muchmala-common into global space');
@@ -68,7 +78,9 @@ file(linkedMuchmalaCommon, function() {
     });
 }, true);
 
+// TODO: refactor this
 var installComponentsSubtasks = [];
+var cleanComponentsSubtasks = [];
 
 components.forEach(function(component) {
     var cwd = componentsBaseDir + '/' + component;
@@ -133,8 +145,24 @@ components.forEach(function(component) {
         complete();
     }, true);
     installComponentsSubtasks.push('install-' + component);
+
+    desc('Clean component ' + component);
+    task('clean-' + component, [], function() {
+        cmd.unsudo(['git', 'clean', '-d', '-x', '-f', 'node_modules'], {cwd: cwd}, function(err) {
+            if (err) {
+                fail(err);
+                return;
+            }
+
+            complete();
+        });
+    }, true);
+    cleanComponentsSubtasks.push('clean-' + component);
 });
 
 
 desc('Install all dependencies in submodules');
 task('install-components', installComponentsSubtasks, function() {});
+
+desc('Clean submodules');
+task('clean-components', cleanComponentsSubtasks, function() {});

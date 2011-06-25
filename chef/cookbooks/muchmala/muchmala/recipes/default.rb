@@ -20,6 +20,7 @@
 
 include_recipe "apt"
 include_recipe "build-essential"
+include_recipe "git"
 include_recipe "redis"
 include_recipe "mongodb-debs"
 include_recipe "nodejs-debs"
