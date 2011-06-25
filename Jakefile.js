@@ -1,8 +1,8 @@
 var fs = require('fs'),
     path = require('path'),
-    spawn = require('child_process').spawn,
     ejs = require('ejs'),
     _ = require('underscore'),
+    cmd = require('./components/muchmala-common').cmd,
 
     config = require('./config.js');
 
@@ -17,7 +17,7 @@ if (path.existsSync('config.local.js')) {
 
 desc('Start muchmala');
 task('start', ['install'], function() {
-    passthru('supervisorctl', ['start', 'muchmala:'], function(err) {
+    cmd.passthru('supervisorctl', ['start', 'muchmala:'], function(err) {
         if (err) {
             return fail(err, 2);
         }
@@ -31,7 +31,7 @@ task('start', ['install'], function() {
 
 desc('Stop muchmala');
 task('stop', function() {
-    passthru('supervisorctl', ['stop', 'muchmala:'], function(err) {
+    cmd.passthru('supervisorctl', ['stop', 'muchmala:'], function(err) {
         if (err) {
             return fail(err, 3);
         }
@@ -58,7 +58,7 @@ task('install', ['install-components'], function() {
 var linkedMuchmalaCommon = '/usr/lib/node_modules/muchmala-common';
 file(linkedMuchmalaCommon, function() {
     console.log('Linking muchmala-common into global space');
-    passthru('npm', ['link'], {cwd: componentsBaseDir + '/muchmala-common'}, function(err) {
+    cmd.passthru('npm', ['link'], {cwd: componentsBaseDir + '/muchmala-common'}, function(err) {
         if (err) {
             fail(err, 2);
             return;
@@ -85,14 +85,14 @@ components.forEach(function(component) {
     desc('Install dependencies for module ' + component);
     file(nodeModules, function() {
         console.log('Linking muchmala-common from global space into ' + component + ' space');
-        unsudo(['npm', 'link', 'muchmala-common'], {cwd: cwd}, function(err) {
+        cmd.unsudo(['npm', 'link', 'muchmala-common'], {cwd: cwd}, function(err) {
             if (err) {
                 fail(err, 2);
                 return;
             }
 
             console.log('Installing dependencies for module ' + component + '...');
-            unsudo(['npm', 'install'], {cwd: cwd}, function(err) {
+            cmd.unsudo(['npm', 'install'], {cwd: cwd}, function(err) {
                 if (err) {
                     fail(err, 2);
                     return;
@@ -119,7 +119,7 @@ components.forEach(function(component) {
         if (hasJakeFile) {
             console.log('Running jake install for ' + component + '...');
 
-            passthru('jake', ['install'], {cwd: cwd}, function(err) {
+            cmd.passthru('jake', ['install'], {cwd: cwd}, function(err) {
                 if (err) {
                     fail(err, 3);
                     return;
@@ -138,32 +138,3 @@ components.forEach(function(component) {
 
 desc('Install all dependencies in submodules');
 task('install-components', installComponentsSubtasks, function() {});
-
-
-function unsudo(args, options, callback) {
-    if (process.env.SUDO_USER) {
-        args = ['sudo', '-u', process.env.SUDO_USER].concat(args);
-    }
-    var command = args.shift();
-    passthru(command, args, options, callback);
-}
-
-function passthru(command, args, options, callback) {
-    if (_.isFunction(options)) {
-        callback = options;
-        options = {};
-    }
-
-    if (!_.isFunction(callback)) {
-        callback = null;
-    }
-
-    if (_.isEmpty(options.customFds)) {
-        options.customFds = [process.stdin, process.stdout, process.stderr];
-    }
-
-    var subprocess = spawn(command, args, options);
-    if (callback) {
-        subprocess.on('exit', callback);
-    };
-}
