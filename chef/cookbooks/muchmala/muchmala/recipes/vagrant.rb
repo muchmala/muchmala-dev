@@ -27,8 +27,5 @@ end
 
 file "/etc/nginx/sites-enabled/default" do
     action :delete
-end
-
-service "nginx" do
-    action :restart
+    notifies :restart, "service[nginx]"
 end
