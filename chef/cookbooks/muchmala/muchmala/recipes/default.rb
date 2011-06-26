@@ -28,5 +28,6 @@ include_recipe "nodejs-debs"
 include_recipe "private-npm-registry"
 include_recipe "node-canvas-deps"
 
+include_recipe "muchmala::npm"
 include_recipe "muchmala::env"
 include_recipe "muchmala::supervisor"
