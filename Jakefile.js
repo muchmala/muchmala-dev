@@ -2,7 +2,10 @@ var fs = require('fs'),
     path = require('path'),
     ejs = require('ejs'),
     _ = require('underscore'),
-    cmd = require('./components/muchmala-common').cmd,
+
+    // FIXME: can't just require `muchmala-common` directly
+    // because of unsolvable dependency loop
+    cmd = require('./components/muchmala-common/lib/cmd'),
 
     config = require('./config.js');
 
@@ -77,6 +80,42 @@ file(linkedMuchmalaCommon, function() {
         complete();
     });
 }, true);
+
+
+
+desc('Install dependencies for module muchmala-common');
+task('install-muchmala-common', [linkedMuchmalaCommon], function() {
+    var options = {
+        cwd: componentsBaseDir + '/muchmala-common'
+    };
+    cmd.unsudo(['npm', 'install'], options, function(err) {
+        if (err) {
+            fail(err);
+            return;
+        }
+        complete();
+    });
+}, true);
+
+
+
+desc('Clean component muchmala-common');
+task('clean-muchmala-common', [], function() {
+    var options = {
+        cwd: componentsBaseDir + '/muchmala-common'
+    };
+    cmd.unsudo(['git', 'clean', '-d', '-x', '-f', 'node_modules'], options, function(err) {
+        if (err) {
+            fail(err);
+            return;
+        }
+
+        complete();
+    });
+}, true);
+
+
+
 
 // TODO: refactor this
 var installComponentsSubtasks = [];
@@ -162,10 +201,10 @@ components.forEach(function(component) {
 
 
 desc('Install all dependencies in submodules');
-task('install-components', installComponentsSubtasks, function() {});
+task('install-components', [].concat('install-muchmala-common', installComponentsSubtasks), function() {});
 
 desc('Clean submodules');
-task('clean-components', cleanComponentsSubtasks, function() {});
+task('clean-components', [].concat('clean-muchmala-common', cleanComponentsSubtasks), function() {});
 
 // this is required in order to ensure that supervisor
 // sees environment variables in /etc/profile.d/muchmala.sh
