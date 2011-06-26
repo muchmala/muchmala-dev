@@ -1,4 +1,4 @@
 template "/etc/profile.d/muchmala.sh" do
     source "muchmala.env"
-    mode 0644
+    mode 0755
 end

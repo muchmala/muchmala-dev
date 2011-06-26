@@ -51,7 +51,7 @@ task('restart', ['stop'], function() {
 
 
 desc('Install all muchmala stuff');
-task('install', ['install-components'], function() {
+task('install', ['restart-supervisor', 'install-components'], function() {
     console.log('Muchmala is installed and ready to use.');
 });
 
@@ -166,3 +166,27 @@ task('install-components', installComponentsSubtasks, function() {});
 
 desc('Clean submodules');
 task('clean-components', cleanComponentsSubtasks, function() {});
+
+// this is required in order to ensure that supervisor
+// sees environment variables in /etc/profile.d/muchmala.sh
+desc('Restart supervisor');
+task('restart-supervisor', [], function() {
+    var initfile = '/etc/init.d/supervisor';
+    // simple `restart` won't work for some reason,
+    // maybe a bug in supervisor's init script
+    cmd.passthru(initfile, ['stop'], function(err) {
+        if (err) {
+            fail(err);
+            return;
+        }
+
+        cmd.passthru(initfile, ['start'], function(err) {
+            if (err) {
+                fail(err);
+                return;
+            }
+
+            complete();
+        });
+    })
+});

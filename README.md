@@ -5,6 +5,4 @@
     vagrant up
     vagrant ssh
     cd /opt/muchmala
-    npm install
-    [sudo] npm install -g stylus jake
     [sudo] jake start
