@@ -126,9 +126,6 @@ components.forEach(function(component) {
 
     var jakeFile = cwd + '/Jakefile.js',
         nodeModules = cwd + '/node_modules',
-        configLocal = cwd + '/config.local.js',
-
-        hasConfigFile = path.existsSync(cwd + '/config.js'),
         hasJakeFile = path.existsSync(jakeFile);
 
     var componentDependencies = [linkedMuchmalaCommon, nodeModules];
@@ -152,18 +149,6 @@ components.forEach(function(component) {
             });
         });
     }, true);
-
-    if (hasConfigFile) {
-        componentDependencies.push(configLocal);
-
-        desc('Override config for module ' + component);
-        file(configLocal, function() {
-            console.log('Overriding config in module ' + component + '...');
-            fs.writeFile(configLocal, 'module.exports = require("../../config.js");', 'utf8', function() {
-                complete();
-            })
-        }, true);
-    }
 
     desc('Install component ' + component);
     task('install-' + component, componentDependencies, function() {
