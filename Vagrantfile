@@ -9,7 +9,7 @@ Vagrant::Config.run do |config|
   end
 
   config.vm.network "33.33.33.15"
-  config.vm.share_folder("v-root", "/opt/muchmala", ".")
+  config.vm.share_folder("v-root", "/opt/muchmala", ".", :nfs => true)
 
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = [
