@@ -27,5 +27,4 @@ include_recipe "nodejs-debs"
 
 include_recipe "muchmala::node-deps"
 include_recipe "muchmala::npm"
-include_recipe "muchmala::env"
 include_recipe "muchmala::supervisor"

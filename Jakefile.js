@@ -1,216 +1,162 @@
 var fs = require('fs'),
     path = require('path'),
-    ejs = require('ejs'),
-    _ = require('underscore'),
+    spawn = require('child_process').spawn,
+    passthru = require('passthru');
 
-    // FIXME: can't just require `muchmala-common` directly
-    // because of unsolvable dependency loop
-    cmd = require('./components/muchmala-common/lib/cmd'),
-
-    config = require('./config.js');
 
 var componentsBaseDir = './components';
-var components = fs.readdirSync(componentsBaseDir);
-components = _.without(components, 'muchmala-common');
+var components = ['muchmala-app', 'muchmala-frontend',
+    'muchmala-generator', 'muchmala-io', 'muchmala-lb'];
 
-var configFiles = ['Jakefile.js', 'config.js'];
-if (path.existsSync('config.local.js')) {
-    configFiles.push('config.local.js');
+
+desc('Install everything');
+task('install',
+    ['install-components'],
+    function() {});
+
+
+desc('Install all components');
+task('install-components',
+    ['install-muchmala-common',
+    'install-muchmala-app', 'install-muchmala-frontend',
+    'install-muchmala-generator', 'install-muchmala-io',
+    'install-muchmala-lb', 'install-muchmala-scripts'],
+    function() {});
+
+
+desc('Install muchmala-common');
+task('install-muchmala-common', function() {
+    console.log('Installing muchmala-common...');
+
+    var cwd = componentsBaseDir + '/muchmala-common';
+
+    // we're doing it in two steps to overcome virtualbox permissions bugs
+    passthru('npm install', {cwd: cwd}, failOnError(function() {
+        passthru('sudo npm link', {cwd: cwd}, failOnError(function() {
+            complete();
+        }));
+    }));
+}, true);
+
+
+desc('Install muchmala-app');
+task('install-muchmala-app', function() {
+    console.log('Installing muchmala-app...');
+    componentNpmInstall('muchmala-app', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Install muchmala-frontend');
+task('install-muchmala-frontend', function() {
+    console.log('Installing muchmala-frontend...');
+    componentNpmInstall('muchmala-frontend', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Install muchmala-generator');
+task('install-muchmala-generator', function() {
+    console.log('Installing muchmala-generator...');
+    componentNpmInstall('muchmala-generator', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Install muchmala-io');
+task('install-muchmala-io', function() {
+    console.log('Installing muchmala-io...');
+    componentNpmInstall('muchmala-io', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Install muchmala-lb');
+task('install-muchmala-lb', function() {
+    console.log('Installing muchmala-lb...');
+    componentNpmInstall('muchmala-lb', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Install muchmala-scripts');
+task('install-muchmala-scripts', function() {
+    console.log('Installing muchmala-scripts...');
+    componentNpmInstall('muchmala-scripts', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Start all services');
+task('start', ['start-muchmala-lb'], function() {
+    passthru('sudo supervisorctl start muchmala:', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Stop all services');
+task('stop', ['stop-muchmala-lb'], function() {
+    passthru('sudo supervisorctl stop muchmala:', failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Start muchmala-lb');
+task('start-muchmala-lb', function() {
+    console.log('Starting muchmala-lb...');
+
+    var cwd = componentsBaseDir + '/muchmala-lb';
+    passthru('sudo bin/muchmala-lb.sh', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Stop muchmala-lb');
+task('stop-muchmala-lb', function() {
+    console.log('Stopping muchmala-lb...');
+
+    var cwd = componentsBaseDir + '/muchmala-lb';
+    passthru('sudo bin/muchmala-lb.sh stop', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+function failOnError(callback) {
+    return function(err) {
+        if (err) {
+            fail(err);
+            return;
+        }
+
+        callback.apply(null, Array.prototype.slice.call(arguments));
+    }
 }
 
-desc('Start muchmala');
-task('start', ['install'], function() {
-    cmd.passthru('supervisorctl', ['start', 'muchmala:'], function(err) {
-        if (err) {
-            return fail(err, 2);
-        }
 
-        console.log("Muchmala is now running.");
-        complete();
-    });
-}, true);
-
-
-
-desc('Stop muchmala');
-task('stop', function() {
-    cmd.passthru('supervisorctl', ['stop', 'muchmala:'], function(err) {
-        if (err) {
-            return fail(err, 3);
-        }
-
-        console.log("Muchmala is now stopped.");
-        complete();
-    });
-}, true);
-
-
-
-desc('Restart muchmala');
-task('restart', ['stop'], function() {
-    jake.Task.start.invoke();
-}, true);
-
-
-
-desc('Install all muchmala stuff');
-task('install', ['restart-supervisor', 'install-components'], function() {
-    console.log('Muchmala is installed and ready to use.');
-});
-
-
-
-desc('Remove all installed files');
-task('clean', ['clean-components'], function() {
-    console.log('All installed files were removed.')
-    console.log('You can run `[sudo] jake install` to install them again.')
-});
-
-
-
-var linkedMuchmalaCommon = '/usr/lib/node_modules/muchmala-common';
-file(linkedMuchmalaCommon, function() {
-    console.log('Linking muchmala-common into global space');
-    cmd.passthru('npm', ['link'], {cwd: componentsBaseDir + '/muchmala-common'}, function(err) {
-        if (err) {
-            fail(err, 2);
-            return;
-        }
-
-        complete();
-    });
-}, true);
-
-
-
-desc('Install dependencies for module muchmala-common');
-task('install-muchmala-common', [linkedMuchmalaCommon], function() {
-    var options = {
-        cwd: componentsBaseDir + '/muchmala-common'
-    };
-    cmd.unsudo(['npm', 'install'], options, function(err) {
-        if (err) {
-            fail(err);
-            return;
-        }
-        complete();
-    });
-}, true);
-
-
-
-desc('Clean component muchmala-common');
-task('clean-muchmala-common', [], function() {
-    var options = {
-        cwd: componentsBaseDir + '/muchmala-common'
-    };
-    cmd.unsudo(['git', 'clean', '-d', '-x', '-f', 'node_modules'], options, function(err) {
-        if (err) {
-            fail(err);
-            return;
-        }
-
-        complete();
-    });
-}, true);
-
-
-
-
-// TODO: refactor this
-var installComponentsSubtasks = [];
-var cleanComponentsSubtasks = [];
-
-components.forEach(function(component) {
+function componentNpmInstall(component, callback) {
     var cwd = componentsBaseDir + '/' + component;
 
-    var jakeFile = cwd + '/Jakefile.js',
-        nodeModules = cwd + '/node_modules',
-        hasJakeFile = path.existsSync(jakeFile);
-
-    var componentDependencies = [linkedMuchmalaCommon, nodeModules];
-
-    desc('Install dependencies for module ' + component);
-    file(nodeModules, function() {
-        console.log('Linking muchmala-common from global space into ' + component + ' space');
-        cmd.unsudo(['npm', 'link', 'muchmala-common'], {cwd: cwd}, function(err) {
-            if (err) {
-                fail(err, 2);
-                return;
-            }
-
-            console.log('Installing dependencies for module ' + component + '...');
-            cmd.unsudo(['npm', 'install'], {cwd: cwd}, function(err) {
-                if (err) {
-                    fail(err, 2);
-                    return;
-                }
-                complete();
-            });
-        });
-    }, true);
-
-    desc('Install component ' + component);
-    task('install-' + component, componentDependencies, function() {
-        if (hasJakeFile) {
-            console.log('Running jake install for ' + component + '...');
-
-            cmd.passthru('jake', ['install'], {cwd: cwd}, function(err) {
-                if (err) {
-                    fail(err, 3);
-                    return;
-                }
-
-                complete();
-            });
-            return;
-        }
-
-        complete();
-    }, true);
-    installComponentsSubtasks.push('install-' + component);
-
-    desc('Clean component ' + component);
-    task('clean-' + component, [], function() {
-        cmd.unsudo(['git', 'clean', '-d', '-x', '-f', 'node_modules'], {cwd: cwd}, function(err) {
-            if (err) {
-                fail(err);
-                return;
-            }
-
-            complete();
-        });
-    }, true);
-    cleanComponentsSubtasks.push('clean-' + component);
-});
-
-
-desc('Install all dependencies in submodules');
-task('install-components', [].concat('install-muchmala-common', installComponentsSubtasks), function() {});
-
-desc('Clean submodules');
-task('clean-components', [].concat('clean-muchmala-common', cleanComponentsSubtasks), function() {});
-
-// this is required in order to ensure that supervisor
-// sees environment variables in /etc/profile.d/muchmala.sh
-desc('Restart supervisor');
-task('restart-supervisor', [], function() {
-    var initfile = '/etc/init.d/supervisor';
-    // simple `restart` won't work for some reason,
-    // maybe a bug in supervisor's init script
-    cmd.passthru(initfile, ['stop'], function(err) {
+    passthru('npm link muchmala-common', {cwd: cwd}, function(err) {
         if (err) {
-            fail(err);
-            return;
+            return callback(err);
         }
 
-        cmd.passthru(initfile, ['start'], function(err) {
+        passthru('npm install', {cwd: cwd}, function(err) {
             if (err) {
-                fail(err);
-                return;
+                return callback(err);
             }
 
-            complete();
-        });
-    })
-});
+            callback();
+        })
+    });
+}

@@ -25,7 +25,7 @@ default['java']['install_flavor'] = "sun"
 
 default[:muchmala][:user] 	= ENV['SUDO_USER']
 default[:muchmala][:group]	= ENV['SUDO_USER']
-default[:muchmala][:root]	  = "/opt/muchmala"
+default[:muchmala][:root]   = "/opt/muchmala"
 
 default[:muchmala][:npm_packages] = [:jake, :stylus]
-default[:muchmala][:npm_registry]  = "http://registry.npm.muchmala.com"
+#default[:muchmala][:npm_registry]  = "http://registry.npm.muchmala.com"
