@@ -4,9 +4,6 @@
 [submodule "chef/cookbooks/mdxp"]
 	path = chef/cookbooks/mdxp
 	url = https://github.com/lohika/mdxp-cookbooks.git
-[submodule "chef/cookbooks/muchmala/redis"]
-	path = chef/cookbooks/muchmala/redis
-	url = https://github.com/papercavalier/redis-cookbook
 [submodule "chef/cookbooks/laggyluke"]
 	path = chef/cookbooks/laggyluke
 	url = https://github.com/laggyluke/laggyluke-cookbooks.git
