@@ -6,7 +6,7 @@ var fs = require('fs'),
 
 var componentsBaseDir = './components';
 var components = ['muchmala-app', 'muchmala-frontend',
-    'muchmala-generator', 'muchmala-io', 'muchmala-lb'];
+    'muchmala-generator', 'muchmala-lb'];
 
 
 desc('Install everything');
@@ -19,8 +19,8 @@ desc('Install all components');
 task('install-components',
     ['install-muchmala-common',
     'install-muchmala-app', 'install-muchmala-frontend',
-    'install-muchmala-generator', 'install-muchmala-io',
-    'install-muchmala-lb', 'install-muchmala-scripts'],
+    'install-muchmala-generator', 'install-muchmala-lb',
+    'install-muchmala-scripts'],
     function() {});
 
 
@@ -61,15 +61,6 @@ desc('Install muchmala-generator');
 task('install-muchmala-generator', function() {
     console.log('Installing muchmala-generator...');
     componentNpmInstall('muchmala-generator', failOnError(function() {
-        complete();
-    }));
-}, true);
-
-
-desc('Install muchmala-io');
-task('install-muchmala-io', function() {
-    console.log('Installing muchmala-io...');
-    componentNpmInstall('muchmala-io', failOnError(function() {
         complete();
     }));
 }, true);
