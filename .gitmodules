@@ -1,9 +1,9 @@
 [submodule "chef/cookbooks/opscode"]
 	path = chef/cookbooks/opscode
-	url = https://github.com/lohika/opscode-cookbooks.git
+	url = https://github.com/muchmala/opscode-cookbooks.git
 [submodule "chef/cookbooks/mdxp"]
 	path = chef/cookbooks/mdxp
-	url = https://github.com/lohika/mdxp-cookbooks.git
+	url = https://github.com/muchmala/mdxp-cookbooks.git
 [submodule "chef/cookbooks/laggyluke"]
 	path = chef/cookbooks/laggyluke
 	url = https://github.com/laggyluke/laggyluke-cookbooks.git
