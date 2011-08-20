@@ -86,7 +86,7 @@ task('install-muchmala-scripts', function() {
 
 desc('Start all services');
 task('start', ['start-muchmala-lb'], function() {
-    passthru('sudo supervisorctl start muchmala:', failOnError(function() {
+    passthru('sudo -E supervisorctl start muchmala:', failOnError(function() {
         complete();
     }));
 }, true);
@@ -94,7 +94,7 @@ task('start', ['start-muchmala-lb'], function() {
 
 desc('Stop all services');
 task('stop', ['stop-muchmala-lb'], function() {
-    passthru('sudo supervisorctl stop muchmala:', failOnError(function() {
+    passthru('sudo -E supervisorctl stop muchmala:', failOnError(function() {
         complete();
     }));
 }, true);
@@ -105,7 +105,7 @@ task('start-muchmala-lb', function() {
     console.log('Starting muchmala-lb...');
 
     var cwd = componentsBaseDir + '/muchmala-lb';
-    passthru('sudo bin/muchmala-lb.sh', {cwd: cwd}, failOnError(function() {
+    passthru('sudo -E bin/muchmala-lb.sh', {cwd: cwd}, failOnError(function() {
         complete();
     }));
 }, true);
@@ -116,7 +116,7 @@ task('stop-muchmala-lb', function() {
     console.log('Stopping muchmala-lb...');
 
     var cwd = componentsBaseDir + '/muchmala-lb';
-    passthru('sudo bin/muchmala-lb.sh stop', {cwd: cwd}, failOnError(function() {
+    passthru('sudo -E bin/muchmala-lb.sh stop', {cwd: cwd}, failOnError(function() {
         complete();
     }));
 }, true);
