@@ -32,7 +32,7 @@ task('install-muchmala-common', function() {
 
     // we're doing it in two steps to overcome virtualbox permissions bugs
     passthru('npm install', {cwd: cwd}, failOnError(function() {
-        passthru('sudo npm link', {cwd: cwd}, failOnError(function() {
+        passthru('sudo -E npm link', {cwd: cwd}, failOnError(function() {
             complete();
         }));
     }));
@@ -85,19 +85,26 @@ task('install-muchmala-scripts', function() {
 
 
 desc('Start all services');
-task('start', ['start-muchmala-lb'], function() {
+task('start', ['start-muchmala-lb', 'start-muchmala-frontend'], function() {
     passthru('sudo -E supervisorctl start muchmala:', failOnError(function() {
         complete();
     }));
 }, true);
 
-
 desc('Stop all services');
-task('stop', ['stop-muchmala-lb'], function() {
+task('stop', ['stop-muchmala-lb', 'stop-muchmala-frontend'], function() {
     passthru('sudo -E supervisorctl stop muchmala:', failOnError(function() {
         complete();
     }));
 }, true);
+
+desc('Restart all services');
+task('restart', ['restart-muchmala-lb', 'restart-muchmala-frontend'], function() {
+    passthru('sudo -E supervisorctl restart muchmala:', failOnError(function() {
+        complete();
+    }));
+}, true);
+
 
 
 desc('Start muchmala-lb');
@@ -110,13 +117,53 @@ task('start-muchmala-lb', function() {
     }));
 }, true);
 
-
 desc('Stop muchmala-lb');
 task('stop-muchmala-lb', function() {
     console.log('Stopping muchmala-lb...');
 
     var cwd = componentsBaseDir + '/muchmala-lb';
     passthru('sudo -E bin/muchmala-lb.sh stop', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+desc('Restart muchmala-lb');
+task('restart-muchmala-lb', function() {
+    console.log('Restarting muchmala-lb...');
+
+    var cwd = componentsBaseDir + '/muchmala-lb';
+    passthru('sudo -E bin/muchmala-lb.sh restart', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+
+desc('Start muchmala-frontend');
+task('start-muchmala-frontend', function() {
+    console.log('Starting muchmala-frontend...');
+
+    var cwd = componentsBaseDir + '/muchmala-frontend';
+    passthru('sudo -E bin/muchmala-frontend.sh', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+desc('Stop muchmala-frontend');
+task('stop-muchmala-frontend', function() {
+    console.log('Stopping muchmala-frontend...');
+
+    var cwd = componentsBaseDir + '/muchmala-frontend';
+    passthru('sudo -E bin/muchmala-frontend.sh stop', {cwd: cwd}, failOnError(function() {
+        complete();
+    }));
+}, true);
+
+desc('Restart muchmala-frontend');
+task('restart-muchmala-frontend', function() {
+    console.log('Restarting muchmala-frontend...');
+
+    var cwd = componentsBaseDir + '/muchmala-frontend';
+    passthru('sudo -E bin/muchmala-frontend.sh restart', {cwd: cwd}, failOnError(function() {
         complete();
     }));
 }, true);
